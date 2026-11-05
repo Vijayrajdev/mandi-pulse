@@ -109,9 +109,9 @@ Takeaways for the collector:
 
 | Topic | Status |
 |---|---|
-| Invalid API key response | _TODO — HTTP status + body_ |
-| Rate-limit headers / 429 behaviour | _TODO_ |
-| Response speed | Slow / inconsistent at times — a header-only request took >2 min on 2026-11-05. **Always set a timeout.** |
+| Invalid API key response | **HTTP 403** (2026-11-05) → don't retry; fail fast. _TODO: record the body._ |
+| Rate-limit headers / 429 behaviour | No rate-limit headers seen (the header-only request returned none, 2026-11-05). 429 not yet observed. _TODO_ |
+| Response speed | Slow / inconsistent at times — a header-only request took >2 min and returned nothing on 2026-11-05. **Always set a timeout.** |
 | Daily publish time | `updated_date` was `08:01:15Z` (13:31 IST) on 2026-11-05. _TODO: check on several days to choose a collection time._ |
 
 ---
@@ -131,7 +131,7 @@ Takeaways for the collector:
 
 - [ ] What time does the data refresh each day? (Record `updated_date` daily for a week.)
 - [ ] Is there a rate limit? What does a 429 look like?
-- [ ] What does an invalid/expired key return?
+- [x] What does an invalid key return? → HTTP 403.
 - [ ] Is row order stable between pages within one pull?
 - [ ] Does `total` change during the day (late-reporting markets)?
 - [ ] Does yesterday's data disappear completely once today's arrives?
