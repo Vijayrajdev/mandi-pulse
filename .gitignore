@@ -1,0 +1,11 @@
+.venv/
+.env
+target/
+logs/
+data/
+CLAUDE.md
+__pycache__/
+.ipynb_checkpoints/
+spark-warehouse/
+metastore_db/
+derby.log
