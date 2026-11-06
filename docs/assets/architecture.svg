@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="892" height="236" viewBox="0 0 892 236" role="img" aria-labelledby="title desc">
+  <title id="title">mandi-pulse architecture</title>
+  <desc id="desc">Pipeline: data.gov.in API, collector, raw Databricks volume (built), then PySpark, Delta silver, dbt marts and FastAPI (planned).</desc>
+
+  <style>
+    .mono  { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', Menlo, Consolas, monospace; }
+    .label { font-size: 13px; font-weight: 700; }
+    .sub   { font-size: 10.5px; }
+    .built   rect { fill: #0F1A13; stroke: #39FF88; stroke-width: 1.5; }
+    .planned rect { fill: #0C110E; stroke: #2E4036; stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .built   .label { fill: #E6FFE9; }
+    .planned .label { fill: #7D9184; }
+    .built   .sub   { fill: #8FB89C; }
+    .planned .sub   { fill: #4B5D51; }
+    @media (prefers-reduced-motion: reduce) { .flow { display: none; } }
+  </style>
+
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Terminal window -->
+  <rect x="1" y="1" width="890" height="234" rx="14" fill="#0A0E0B" stroke="#1C2A21" stroke-width="2"/>
+  <rect x="1" y="1" width="890" height="34" rx="14" fill="#101712"/>
+  <rect x="1" y="22" width="890" height="13" fill="#101712"/>
+  <circle cx="24" cy="18" r="5.5" fill="#FF5F57"/>
+  <circle cx="44" cy="18" r="5.5" fill="#FEBC2E"/>
+  <circle cx="64" cy="18" r="5.5" fill="#28C840"/>
+  <text x="446" y="23" text-anchor="middle" class="mono" font-size="12" fill="#5B6B60">~/mandi-pulse/architecture</text>
+
+  <text x="20" y="62" class="mono" font-size="13" fill="#9FB3A6"><tspan fill="#39FF88">$</tspan> ./pipeline --status</text>
+
+  <!-- Connectors: solid + flowing dots where built, dashed where planned -->
+  <g stroke-width="1.5">
+    <line x1="128" y1="117" x2="144" y2="117" stroke="#39FF88"/>
+    <line x1="252" y1="117" x2="268" y2="117" stroke="#39FF88"/>
+    <line x1="376" y1="117" x2="392" y2="117" stroke="#2E4036" stroke-dasharray="3 3"/>
+    <line x1="500" y1="117" x2="516" y2="117" stroke="#2E4036" stroke-dasharray="3 3"/>
+    <line x1="624" y1="117" x2="640" y2="117" stroke="#2E4036" stroke-dasharray="3 3"/>
+    <line x1="748" y1="117" x2="764" y2="117" stroke="#2E4036" stroke-dasharray="3 3"/>
+  </g>
+  <g class="flow" fill="#39FF88" filter="url(#glow)">
+    <circle r="2.6"><animateMotion dur="1.4s" repeatCount="indefinite" path="M124 117 H148"/></circle>
+    <circle r="2.6"><animateMotion dur="1.4s" begin="0.7s" repeatCount="indefinite" path="M248 117 H272"/></circle>
+  </g>
+
+  <!-- Nodes (x = 20 + i*124, width 108) -->
+  <g class="mono">
+    <g class="built" transform="translate(20,80)">
+      <rect width="108" height="74" rx="8"/>
+      <text x="54" y="25" text-anchor="middle" class="label">data.gov.in</text>
+      <text x="54" y="43" text-anchor="middle" class="sub">agmarknet api</text>
+      <text x="54" y="58" text-anchor="middle" class="sub">india-only ip</text>
+    </g>
+    <g class="built" transform="translate(144,80)">
+      <rect width="108" height="74" rx="8"/>
+      <text x="54" y="25" text-anchor="middle" class="label">collector</text>
+      <text x="54" y="43" text-anchor="middle" class="sub">retry · paging</text>
+      <text x="54" y="58" text-anchor="middle" class="sub">jsonl+manifest</text>
+    </g>
+    <g class="built" transform="translate(268,80)">
+      <rect width="108" height="74" rx="8"/>
+      <text x="54" y="25" text-anchor="middle" class="label">raw volume</text>
+      <text x="54" y="43" text-anchor="middle" class="sub">unity catalog</text>
+      <text x="54" y="58" text-anchor="middle" class="sub">ingest_date=…</text>
+    </g>
+    <g class="planned" transform="translate(392,80)">
+      <rect width="108" height="74" rx="8"/>
+      <text x="54" y="25" text-anchor="middle" class="label">pyspark</text>
+      <text x="54" y="43" text-anchor="middle" class="sub">clean · dedupe</text>
+      <text x="54" y="58" text-anchor="middle" class="sub">standardise</text>
+    </g>
+    <g class="planned" transform="translate(516,80)">
+      <rect width="108" height="74" rx="8"/>
+      <text x="54" y="25" text-anchor="middle" class="label">delta silver</text>
+      <text x="54" y="43" text-anchor="middle" class="sub">merge upsert</text>
+      <text x="54" y="58" text-anchor="middle" class="sub">rolling stats</text>
+    </g>
+    <g class="planned" transform="translate(640,80)">
+      <rect width="108" height="74" rx="8"/>
+      <text x="54" y="25" text-anchor="middle" class="label">dbt marts</text>
+      <text x="54" y="43" text-anchor="middle" class="sub">trends · spread</text>
+      <text x="54" y="58" text-anchor="middle" class="sub">anomalies</text>
+    </g>
+    <g class="planned" transform="translate(764,80)">
+      <rect width="108" height="74" rx="8"/>
+      <text x="54" y="25" text-anchor="middle" class="label">fastapi</text>
+      <text x="54" y="43" text-anchor="middle" class="sub">/v1/* · auth</text>
+      <text x="54" y="58" text-anchor="middle" class="sub">/ask (llm)</text>
+    </g>
+  </g>
+
+  <!-- Stage captions -->
+  <g class="mono" font-size="10.5" fill="#4B5D51">
+    <text x="20"  y="176">├─ ingest ─────────────────────────────┤</text>
+    <text x="392" y="176">├─ process ──────────────┤</text>
+    <text x="640" y="176">├─ serve ──────────────┤</text>
+  </g>
+
+  <!-- Legend -->
+  <g class="mono" font-size="11.5" transform="translate(20,210)">
+    <rect x="0" y="-9" width="14" height="10" rx="2" fill="#0F1A13" stroke="#39FF88" stroke-width="1.5"/>
+    <text x="22" y="0" fill="#8FB89C">built</text>
+    <rect x="80" y="-9" width="14" height="10" rx="2" fill="#0C110E" stroke="#2E4036" stroke-width="1.5" stroke-dasharray="3 2"/>
+    <text x="102" y="0" fill="#4B5D51">planned</text>
+    <text x="852" y="0" text-anchor="end" fill="#4B5D51">exit 0 <tspan fill="#39FF88">✔</tspan></text>
+  </g>
+</svg>
