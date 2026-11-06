@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
 # Absolute import from the project root. Run with:  python -m ingestion.collect_daily
-from agmarknet_client import (
+from ingestion.agmarknet_client import (
     CURRENT_PRICES_RESOURCE_ID,
     AgmarknetAPIError,
     iter_pages,

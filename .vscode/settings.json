@@ -1,0 +1,16 @@
+{
+  // Make the project root importable in VS Code terminals, so the ▶ "Run Python File"
+  // button works with absolute imports like `from ingestion.agmarknet_client import ...`.
+  // (Open a NEW terminal after changing this.)
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "${workspaceFolder}"
+  },
+  "terminal.integrated.env.linux": {
+    "PYTHONPATH": "${workspaceFolder}"
+  },
+  // Same for the debugger / Run and Debug.
+  "python.envFile": "${workspaceFolder}/.env",
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.analysis.extraPaths": ["${workspaceFolder}"],
+  "python.terminal.executeInFileDir": false
+}
