@@ -5,16 +5,22 @@ Output: data/raw/agmarknet/ingest_date=YYYY-MM-DD/records.jsonl + _manifest.json
 Author: Vijay (github.com/Vijayrajdev)
 """
 
+import argparse
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 
-from ingestion.agmarknet_client import iter_pages
+# Absolute import from the project root. Run with:  python -m ingestion.collect_daily
+from agmarknet_client import (
+    CURRENT_PRICES_RESOURCE_ID,
+    AgmarknetAPIError,
+    iter_pages,
+)
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -22,6 +28,11 @@ logger = logging.getLogger(__name__)
 # Mandis, prices and arrival_date are all in Indian time, so partition folders use IST dates.
 # (Timestamps such as started_at/finished_at stay in UTC.)
 IST = ZoneInfo("Asia/Kolkata")
+
+
+def utc_now() -> str:
+    """Current time in UTC as ISO text, e.g. '2026-11-06T07:15:00+00:00'."""
+    return datetime.now(UTC).isoformat(timespec="seconds")
 
 
 def today_ist() -> str:
@@ -72,7 +83,7 @@ def write_records(output_dir: Path, max_pages: int | None = None) -> dict:
 
                 for record in page["records"]:
                     # JSONL = one JSON object per line. ensure_ascii=False keeps
-                    # non-English characters readable instead of ह escapes.
+                    # Hindi/Tamil etc. readable instead of turning them into escape codes.
                     f.write(json.dumps(record, ensure_ascii=False) + "\n")
                     records_received += 1
 
@@ -102,10 +113,97 @@ def write_records(output_dir: Path, max_pages: int | None = None) -> dict:
     }
 
 
+def write_manifest(output_dir: Path, manifest: dict) -> Path:
+    """Write _manifest.json (the run's "receipt") next to records.jsonl. Return its path.
+
+    Uses the same .tmp + os.replace trick as write_records, so a crash can never
+    leave a half-written manifest behind.
+    """
+    tmp_path = output_dir / "_manifest.json.tmp"
+    final_path = output_dir / "_manifest.json"
+
+    # indent=2 makes it easy for humans to read; sort_keys keeps the field order
+    # stable between runs, so two manifests are easy to compare.
+    tmp_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    os.replace(tmp_path, final_path)
+
+    logger.info("Wrote manifest to %s (status=%s)", final_path, manifest.get("status"))
+    return final_path
+
+
+def decide_status(
+    api_total: int | None, records_received: int, max_pages: int | None
+) -> str:
+    """Turn the counts into a status for the manifest."""
+    if max_pages:
+        # Test run that stopped early - fewer records than api_total is expected.
+        return "partial"
+    if api_total is not None and records_received == api_total:
+        return "success"
+    # Got data, but not exactly what the API said exists (data changed mid-pull,
+    # pages shifted, ...). Keep the file, but flag it so we notice.
+    logger.warning(
+        "Count mismatch: api_total=%s but records_received=%s",
+        api_total,
+        records_received,
+    )
+    return "count_mismatch"
+
+
+def main(max_pages: int | None = None) -> dict:
+    """Run one daily collection: records.jsonl + _manifest.json. Return the manifest.
+
+    On any failure a manifest with status="failed" is still written, then the error
+    is re-raised so the process exits non-zero and the scheduler marks the run as failed.
+    """
+    ingest_date = today_ist()  # business date -> IST
+    out_dir = get_output_dir(ingest_date)
+
+    manifest = {
+        "ingest_date": ingest_date,
+        "source": "data.gov.in",
+        "resource_id": CURRENT_PRICES_RESOURCE_ID,
+        "started_at": utc_now(),  # timestamps -> UTC
+        "max_pages": max_pages,
+    }
+
+    try:
+        counts = write_records(out_dir, max_pages=max_pages)
+    except Exception as error:
+        manifest["status"] = "failed"
+        manifest["finished_at"] = utc_now()
+        # Our own AgmarknetAPIError messages are safe to store. For anything else store only
+        # the error type: other exceptions' messages can contain the URL, and with it the API key.
+        if isinstance(error, AgmarknetAPIError):
+            manifest["error"] = str(error)
+        else:
+            manifest["error"] = type(error).__name__
+        write_manifest(out_dir, manifest)
+        raise
+
+    manifest.update(counts)
+    manifest["status"] = decide_status(
+        counts["api_total"], counts["records_received"], max_pages
+    )
+    manifest["finished_at"] = utc_now()
+    write_manifest(out_dir, manifest)
+    return manifest
+
+
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Collect today's mandi prices.")
+    parser.add_argument(
+        "--max-pages",
+        type=int,
+        default=None,
+        help="Testing shortcut: stop after N pages (default: download everything).",
+    )
+    args = parser.parse_args()
+
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
     )
-    out_dir = get_output_dir(today_ist())
-    # Quick test: one page only. Remove max_pages to download everything.
-    print(write_records(out_dir, max_pages=1))
+    main(max_pages=args.max_pages)
