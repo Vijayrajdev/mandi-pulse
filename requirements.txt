@@ -1,0 +1,18 @@
+# Full local development environment (Python 3.12).
+#   python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+# Java 17 is also required for PySpark.
+
+# Ingestion (also used alone by GitHub Actions)
+-r requirements-ingestion.txt
+
+# Processing - delta-spark pins the matching pyspark; don't upgrade them independently.
+delta-spark==4.4.1
+pyspark==4.2.0
+
+# Transform
+dbt-duckdb==1.11.1
+duckdb==2.0.0
+
+# Dev tools
+pytest==9.2.0
+ruff==0.17.3
