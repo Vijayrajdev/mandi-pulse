@@ -112,6 +112,7 @@ Takeaways for the collector:
 | Invalid API key response | **HTTP 403** (2026-11-05) → don't retry; fail fast. _TODO: record the body._ |
 | Rate-limit headers / 429 behaviour | No rate-limit headers seen (the header-only request returned none, 2026-11-05). 429 not yet observed. _TODO_ |
 | Response speed | Slow / inconsistent at times — a header-only request took >2 min and returned nothing on 2026-11-05. **Always set a timeout.** |
+| **User-Agent filtering** | ⚠️ Requests with the default `python-requests/x.y` User-Agent **hang until timeout** (no error, no response). Same request with a custom UA (`mandi-pulse/0.1`) or curl's UA returns 200 in <1 s (2026-11-06). → **Always send a custom `User-Agent` header.** Many "API is down" timeouts on 2026-11-05 were probably this, not an outage. |
 | Daily publish time | `updated_date` was `08:01:15Z` (13:31 IST) on 2026-11-05. _TODO: check on several days to choose a collection time._ |
 
 ---
@@ -127,7 +128,26 @@ Takeaways for the collector:
 
 ---
 
-## 7. Open questions
+## 7. Historical dataset (found 2026-11-06)
+
+| Item | Value |
+|---|---|
+| Title | Variety-wise Daily Market Prices Data of Commodity |
+| Resource ID | `35985678-0d79-46b4-9ed6-6f13308a1d24` (`HISTORICAL_PRICES_RESOURCE_ID` in the client) |
+| Volume | **82,939,931** rows (2026-11-06), going back to at least **2010** |
+| Fields | `Arrival_Date, Commodity, Commodity_Code, District, Grade, Market, Max_Price, Min_Price, Modal_Price, State, Variety` |
+
+Differences from the current-prices dataset:
+- Field names are **Capitalised** (`Modal_Price` vs `modal_price`) → map both to one schema in Phase 2.
+- Has an extra **`Commodity_Code`** — could help name standardisation.
+- Same `dd/mm/yyyy` date format.
+
+Implication: this may replace the India Data Portal backfill (CLAUDE.md §5.2) — but it has **no lat/long**, so we still need market coordinates from elsewhere.
+⚠️ Paging all of it at 1000/page = ~83k requests → backfill must use `filters[...]` (e.g. by state/commodity/date) and run slowly.
+
+---
+
+## 8. Open questions
 
 - [ ] What time does the data refresh each day? (Record `updated_date` daily for a week.)
 - [ ] Is there a rate limit? What does a 429 look like?
