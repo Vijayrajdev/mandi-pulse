@@ -36,7 +36,7 @@ data.gov.in API ──► Daily collector ──► Raw JSONL ──► PySpark 
 
 | Layer | Local | Cloud |
 |---|---|---|
-| Ingestion | Python + `requests` | GitHub Actions cron → Databricks Workflows |
+| Ingestion | Python + `requests` (daily run from an Indian IP — see below) | Scheduled runner with an Indian egress IP → Databricks Volume |
 | Processing | PySpark + Delta Lake | Databricks Jobs |
 | Transform | dbt + DuckDB | dbt + Databricks SQL |
 | API | FastAPI | Databricks Apps |
@@ -45,7 +45,7 @@ data.gov.in API ──► Daily collector ──► Raw JSONL ──► PySpark 
 ## Roadmap
 
 - [x] **Phase 0** — Setup (Python, Java 17, local Spark + Delta) — *mostly done*
-- [ ] **Phase 1** — Daily collector (API client ✅, daily JSONL writer 🚧)
+- [ ] **Phase 1** — Daily collector (API client ✅, JSONL writer + manifest ✅, Databricks upload ✅, automated schedule 🚧, tests 🚧)
 - [ ] **Phase 2** — PySpark: bronze → silver → features
 - [ ] **Phase 3** — dbt: incremental models, snapshots, tests
 - [ ] **Phase 4** — FastAPI: prices, trends, arbitrage, anomalies
@@ -59,14 +59,30 @@ data.gov.in API ──► Daily collector ──► Raw JSONL ──► PySpark 
 
 Notes on how the API behaves and its quirks are in [`docs/source_notes.md`](docs/source_notes.md).
 
+> ⚠️ **data.gov.in blocks requests from outside India.** GitHub-hosted runners and Databricks Free Edition
+> can't reach it, so the collector currently runs manually from a machine in India. An automated schedule
+> (GitHub Actions through an India-based SSH tunnel) is in progress.
+
 ## Running locally
 
-> Setup instructions will be added as the pieces come together.
+Requires Python 3.12 and Java 17 (for PySpark).
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
-pip install delta-spark dbt-duckdb requests python-dotenv pytest ruff
-echo "DATA_GOV_API_KEY=your_key_here" > .env   # free key from data.gov.in
+pip install -r requirements.txt
+
+# .env (never committed)
+#   DATA_GOV_API_KEY=...        free key from data.gov.in
+#   DATABRICKS_HOST=...         only needed for the upload step
+#   DATABRICKS_TOKEN=...
+```
+
+Daily collection (run from the project root, from an Indian IP):
+
+```bash
+python -m ingestion.collect_daily                  # -> data/raw/agmarknet/ingest_date=<IST date>/
+python -m ingestion.collect_daily --max-pages 1    # quick test run (not uploaded)
+python -m ingestion.upload_to_volume               # -> Databricks Volume
 ```
 
 ---

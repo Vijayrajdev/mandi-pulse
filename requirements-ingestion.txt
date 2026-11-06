@@ -1,5 +1,5 @@
 # Minimal dependencies for the daily collector + Databricks upload.
-# Used by GitHub Actions, so the daily run doesn't install Spark/dbt (~400 MB).
+# Kept separate so a scheduled runner doesn't need to install Spark/dbt (~400 MB).
 requests==2.34.2
 python-dotenv==1.2.4
 databricks-sdk==0.162.0
