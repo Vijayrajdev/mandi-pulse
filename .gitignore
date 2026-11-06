@@ -5,7 +5,9 @@ logs/
 data/
 CLAUDE.md
 __pycache__/
+.ruff_cache/
 .ipynb_checkpoints/
+.DS_Store
 spark-warehouse/
 metastore_db/
 derby.log
