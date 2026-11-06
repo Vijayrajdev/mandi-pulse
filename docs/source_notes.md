@@ -113,7 +113,8 @@ Takeaways for the collector:
 | Rate-limit headers / 429 behaviour | No rate-limit headers seen (the header-only request returned none, 2026-11-05). 429 not yet observed. _TODO_ |
 | Response speed | Slow / inconsistent at times — a header-only request took >2 min and returned nothing on 2026-11-05. **Always set a timeout.** |
 | **User-Agent filtering** | ⚠️ Requests with the default `python-requests/x.y` User-Agent **hang until timeout** (no error, no response). Same request with a custom UA (`mandi-pulse/0.1`) or curl's UA returns 200 in <1 s (2026-11-06). → **Always send a custom `User-Agent` header.** Many "API is down" timeouts on 2026-11-05 were probably this, not an outage. |
-| **Databricks Free Edition** | ❌ Serverless compute cannot reach the API: `NewConnectionError [Errno 113] No route to host` (2026-11-06) — outbound internet is restricted. Collect from GitHub Actions / local instead. |
+| **Databricks Free Edition** | ❌ Serverless compute cannot reach the API: `NewConnectionError [Errno 113] No route to host` (2026-11-06) — outbound internet is restricted (likely the same geo-block as below). |
+| **Geo-blocking** | ❌ **Connections from outside India are blocked.** GitHub Actions (US runners) gets `ConnectionError` / `ConnectTimeout` on every attempt while a Mac in India gets HTTP 200 at the same moment (tested twice, 2026-11-06 08:32 and 08:36 UTC). Databricks Free Edition's `No route to host` is likely the same block. → The collector must run from an Indian IP. |
 | Daily publish time | `updated_date` was `08:01:15Z` (13:31 IST) on 2026-11-05. _TODO: check on several days to choose a collection time._ |
 
 ---
