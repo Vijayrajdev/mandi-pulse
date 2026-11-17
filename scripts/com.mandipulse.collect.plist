@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS launchd job: runs scripts/run_daily.sh every day at 20:30 (Mac's local time, IST).
+  If the Mac is asleep at 20:30, launchd runs it as soon as the Mac wakes up.
+  If the Mac is switched OFF all day, that day is skipped.
+
+  Install:    ./scripts/install_schedule.sh
+  Uninstall:  launchctl bootout gui/$(id -u)/com.mandipulse.collect
+              rm ~/Library/LaunchAgents/com.mandipulse.collect.plist
+
+  PROJECT_ROOT is replaced with the real path by install_schedule.sh.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.mandipulse.collect</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>PROJECT_ROOT/scripts/run_daily.sh</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>20</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>PROJECT_ROOT/logs/collect_daily.log</string>
+    <key>StandardErrorPath</key>
+    <string>PROJECT_ROOT/logs/collect_daily.log</string>
+</dict>
+</plist>

@@ -50,7 +50,7 @@ open-data API, cleans them up, and serves trends, anomalies and best-market comp
 ```console
 $ mandi-pulse --roadmap
 [✔] phase 0  setup              python 3.12 · java 17 · local spark + delta
-[~] phase 1  daily collector    client ✔  writer ✔  upload ✔  schedule …  tests …
+[~] phase 1  daily collector    client ✔  writer ✔  upload ✔  schedule ✔ (mac)  tests ✔
 [ ] phase 2  pyspark            bronze → silver → features
 [ ] phase 3  dbt                incremental models · snapshots · tests
 [ ] phase 4  fastapi            prices · trends · arbitrage · anomalies
@@ -67,8 +67,8 @@ Notes on how the API behaves and its quirks are in [`docs/source_notes.md`](docs
 
 > [!WARNING]
 > **data.gov.in blocks requests from outside India.** GitHub-hosted runners and Databricks Free Edition
-> can't reach it, so the collector currently runs by hand from a machine in India. An automated schedule
-> (GitHub Actions through an India-based SSH tunnel) is in progress.
+> can't reach it, so the collector runs on a Mac in India, scheduled daily at 20:30 IST with `launchd`
+> (`scripts/`). Moving it to an always-on runner (GitHub Actions through an India-based SSH tunnel) is planned.
 
 ## `❯ run locally`
 
@@ -90,6 +90,18 @@ Daily collection (run from the project root, from an Indian IP):
 python -m ingestion.collect_daily                  # -> data/raw/agmarknet/ingest_date=<IST date>/
 python -m ingestion.collect_daily --max-pages 1    # quick test run (not uploaded)
 python -m ingestion.upload_to_volume               # -> Databricks Volume
+```
+
+Run it automatically every day at 20:30 (macOS):
+
+```bash
+./scripts/install_schedule.sh                      # installs a launchd job; logs in logs/collect_daily.log
+```
+
+Tests (no network, no Databricks — everything external is faked):
+
+```bash
+pytest -q
 ```
 
 ---
